@@ -12,10 +12,10 @@ import {
   Image,
   StyleSheet,
   Dimensions,
-  SafeAreaView,
   ScrollView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   FadeIn,
   FadeOut,
@@ -359,7 +359,7 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Header Bar */}
       <View style={styles.headerBar}>
-        <Text style={styles.timeText}>9:41</Text>
+        {/* <Text style={styles.timeText}>9:41</Text> */}
         <Text style={styles.settingsIcon}>⚙️</Text>
       </View>
 
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#FF6B35", // Saffron orange
+    // backgroundColor: "#FF6B35", // Saffron orange
   },
   timeText: {
     fontSize: 16,
@@ -554,6 +554,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 18,
+    marginLeft: 'auto',
   },
   scrollContent: {
     paddingHorizontal: 20,

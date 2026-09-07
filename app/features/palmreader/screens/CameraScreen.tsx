@@ -15,7 +15,7 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+
   Pressable,
   Alert,
   ActivityIndicator,
@@ -46,12 +46,26 @@ import {
   cleanupHandDetector,
 } from "@/services/palmReading/mediaPipeHandDetection";
 import type { RootStackParamList, UserData } from "@/navigation/RootNavigator";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { height } = Dimensions.get("window");
 
 type NavigationType = NativeStackNavigationProp<RootStackParamList>;
 
 type FlowStep = "camera" | "nickname" | "ageChoice" | "ageInput" | "enhancedReading" | "preview";
+
+// Hand marker PNG component
+const HandMarker = ({ opacity = 1 }) => (
+  <Image
+    source={require("../../../../assets/svg/hand-marker.png")}
+    style={{
+      width: 480,
+      height: 480,
+      opacity,
+      resizeMode: "contain",
+    }}
+  />
+);
 
 export const CameraScreen: React.FC = () => {
   const navigation = useNavigation<NavigationType>();
@@ -159,7 +173,7 @@ export const CameraScreen: React.FC = () => {
       } catch (error) {
         console.debug("Detection analysis error:", error);
       }
-    }, 500); // Analyze every 500ms (non-blocking)
+    }, 1000); // Analyze every 500ms (non-blocking)
 
     return () => clearInterval(analyzeInterval);
   }, [currentStep, cameraReady]);
@@ -206,13 +220,13 @@ export const CameraScreen: React.FC = () => {
           duration: 300,
         });
 
-        // Wait for animation to complete, then move to next step
+        // Wait for animation to complete, then navigate to scanning screen
         setTimeout(() => {
-          setUserData((prev) => ({
-            ...prev,
-            palmImage: photo.uri,
-          }));
-          setCurrentStep("nickname");
+          const readingId = `reading_${Date.now()}`;
+          navigation.navigate("Scanning", {
+            palmImageUri: photo.uri,
+            readingId,
+          } as any);
           setIsCapturing(false);
         }, 500);
       } else {
@@ -382,75 +396,65 @@ export const CameraScreen: React.FC = () => {
             <View style={{ width: 60 }} />
           </View>
 
-          {/* Guide Frame with Live Detection */}
+          {/* Hand Marker Guide with Live Detection */}
           <View style={styles.guideContainer}>
-            <Animated.View
-              style={[
-                styles.guideFrame,
-                {
-                  borderColor: isPalmValid
-                    ? "#4CAF50" // Green for valid palm
-                    : isPalmDetected
-                    ? "#FFC107" // Yellow for detected but not ideal
-                    : "#EF5350", // Red for no palm or invalid
-                },
-              ]}
-            >
-              <Text style={styles.guideText}>📐</Text>
-              <Text style={styles.guideSubtext}>Center your palm here</Text>
+            <View style={styles.handOutlineWrapper}>
+              <HandMarker opacity={0.7} />
 
-              {/* Real-time Feedback */}
-              <View
-                style={[
-                  styles.feedbackBadge,
-                  {
-                    backgroundColor: isPalmValid
-                      ? "rgba(76, 175, 80, 0.2)"
-                      : isPalmDetected
-                      ? "rgba(255, 193, 7, 0.2)"
-                      : "rgba(239, 83, 80, 0.2)",
-                  },
-                ]}
-              >
-                <Text
+              {/* Real-time Feedback - Inside Hand Area */}
+              <View style={styles.feedbackOverlay}>
+                {/* <View
                   style={[
-                    styles.feedbackText,
+                    styles.feedbackBadge,
                     {
-                      color: isPalmValid
-                        ? "#4CAF50"
+                      backgroundColor: isPalmValid
+                        ? "rgba(76, 175, 80, 0.3)"
                         : isPalmDetected
-                        ? "#FFC107"
-                        : "#EF5350",
+                        ? "rgba(255, 193, 7, 0.3)"
+                        : "rgba(239, 83, 80, 0.3)",
                     },
                   ]}
                 >
-                  {isPalmValid ? "✓" : isPalmDetected ? "⚠" : "✕"}{" "}
-                  {detectionFeedback}
-                </Text>
-              </View>
-
-              {/* Confidence Indicator */}
-              {isPalmDetected && (
-                <View style={styles.confidenceContainer}>
-                  <View style={styles.confidenceBar}>
-                    <View
-                      style={[
-                        styles.confidenceFill,
-                        {
-                          width: `${Math.min(detectionConfidence, 100)}%`,
-                          backgroundColor: isPalmValid
-                            ? "#4CAF50"
-                            : "#FFC107",
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.confidenceText}>
-                    {Math.round(detectionConfidence)}% confidence
+                  <Text
+                    style={[
+                      styles.feedbackText,
+                      {
+                        color: isPalmValid
+                          ? "#4CAF50"
+                          : isPalmDetected
+                          ? "#FFC107"
+                          : "#EF5350",
+                      },
+                    ]}
+                  >
+                    {isPalmValid ? "✓" : isPalmDetected ? "⚠" : "✕"}{" "}
+                    {detectionFeedback}
                   </Text>
-                </View>
-              )}
-            </Animated.View>
+                </View> */}
+
+                {/* Confidence Indicator - Inside Hand Area */}
+                {/* {isPalmDetected && (
+                  <View style={styles.confidenceContainer}>
+                    <View style={styles.confidenceBar}>
+                      <View
+                        style={[
+                          styles.confidenceFill,
+                          {
+                            width: `${Math.min(detectionConfidence, 100)}%`,
+                            backgroundColor: isPalmValid
+                              ? "#4CAF50"
+                              : "#FFC107",
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.confidenceText}>
+                      {Math.round(detectionConfidence)}% confidence
+                    </Text>
+                  </View>
+                )} */}
+              </View>
+            </View>
           </View>
 
           {/* Capture Button Area */}
@@ -868,7 +872,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backButtonText: {
-    color: palmColors.primary,
+    color: '#FFC107',
     fontSize: 16,
     fontWeight: "600",
   },
@@ -885,7 +889,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
+  },
+  handOutlineWrapper: {
+    position: "relative" as const,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  feedbackOverlay: {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 40,
   },
   guideFrame: {
     width: "100%",

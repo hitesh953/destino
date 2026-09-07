@@ -10,15 +10,13 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  SafeAreaView,
   Pressable,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   FadeIn,
-  FadeOut,
   ZoomIn,
   SlideInUp,
-  withDelay,
   withTiming,
   useSharedValue,
   useAnimatedStyle,
@@ -69,7 +67,7 @@ export const WelcomeScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header Bar with Time */}
       <View style={styles.headerBar}>
-        <Text style={styles.timeText}>9:41</Text>
+        {/* <Text style={styles.timeText}>9:41</Text> */}
         <Text style={styles.settingsIcon}>⚙️</Text>
       </View>
 
@@ -172,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#FF6B35", // Saffron/Orange from design
+    // backgroundColor: "#FF6B35", // Saffron/Orange from design
   },
   timeText: {
     fontSize: 16,
@@ -181,6 +179,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 18,
+    marginLeft: 'auto',
   },
   content: {
     flex: 1,

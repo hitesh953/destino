@@ -1,7 +1,7 @@
 /**
  * Root Navigation Setup
  * Defines all routes and screen navigation flow
- * Navigation Stack: Welcome → Camera → Processing → Results → Home
+ * Navigation Stack: Welcome → Camera → Scanning → Processing → Results → Home
  */
 
 import React from 'react';
@@ -12,6 +12,8 @@ import type { ParamListBase } from '@react-navigation/native';
 // Import all screens
 import { WelcomeScreen } from '@/screens/WelcomeScreen';
 import { CameraScreen } from '@/features/palmreader/screens/CameraScreen';
+import { ScanningScreen } from '@/features/palmreader/screens/ScanningScreen';
+import { ReadingFormScreen } from '@/features/palmreader/screens/ReadingFormScreen';
 import { ProcessingScreen } from '@/features/palmreader/screens/ProcessingScreen';
 import { ReadingResultScreen } from '@/features/palmreader/screens/ReadingResultScreen';
 import { HomeScreen } from '@/features/palmreader/screens/HomeScreen';
@@ -42,6 +44,14 @@ export interface UserData {
 export type RootStackParamList = {
   Welcome: undefined;
   Camera: undefined;
+  Scanning: {
+    palmImageUri: string;
+    readingId: string;
+  };
+  ReadingForm: {
+    palmImageUri: string;
+    readingId: string;
+  };
   Processing: {
     capturedImageUri: string;
     readingId?: string;
@@ -73,16 +83,10 @@ export const RootNavigator = () => {
           // Hide default header (custom headers in each screen)
           headerShown: false,
 
-          // Enable animations between screens
-          animationEnabled: true,
-
           // Default background color
-          cardStyle: {
+          contentStyle: {
             backgroundColor: '#F5F1E8', // palmColors.background
           },
-
-          // Animation settings
-          animationTypeForReplace: 'pop',
         }}
       >
         {/* ============================================
@@ -93,9 +97,6 @@ export const RootNavigator = () => {
           name="Welcome"
           component={WelcomeScreen}
           options={{
-            // No animation for first screen (clean entry)
-            animationEnabled: false,
-
             // Prevent back navigation on Welcome screen
             gestureEnabled: false,
           }}
@@ -109,25 +110,48 @@ export const RootNavigator = () => {
           name="Camera"
           component={CameraScreen}
           options={{
-            // Allow smooth animation from Welcome
-            animationEnabled: true,
-
             // Allow back gesture to return to Welcome
             gestureEnabled: true,
           }}
         />
 
         {/* ============================================
-            Screen 3: Processing (AI Analysis)
+            Screen 3: Scanning (Palm Analysis)
+            Animated scan with results reveal
+            ============================================ */}
+        <Stack.Screen
+          name="Scanning"
+          component={ScanningScreen}
+          options={{
+            // Disable back gesture during scanning
+            gestureEnabled: false,
+
+            // Prevent back button from appearing
+            headerLeft: () => null,
+          }}
+        />
+
+        {/* ============================================
+            Screen 4: ReadingForm (User Details)
+            Collects user information for reading
+            ============================================ */}
+        <Stack.Screen
+          name="ReadingForm"
+          component={ReadingFormScreen}
+          options={{
+            // Allow back gesture
+            gestureEnabled: true,
+          }}
+        />
+
+        {/* ============================================
+            Screen 5: Processing (AI Analysis)
             Shows 4-second processing animation
             ============================================ */}
         <Stack.Screen
           name="Processing"
           component={ProcessingScreen}
           options={{
-            // Smooth fade-in from Camera
-            animationEnabled: true,
-
             // IMPORTANT: Disable back gesture during processing
             // Prevents user from interrupting the 4-second processing
             gestureEnabled: false,
@@ -138,16 +162,13 @@ export const RootNavigator = () => {
         />
 
         {/* ============================================
-            Screen 4: ReadingResult (Display Predictions)
+            Screen 6: ReadingResult (Display Predictions)
             Shows AI predictions and allows sharing
             ============================================ */}
         <Stack.Screen
           name="ReadingResult"
           component={ReadingResultScreen}
           options={{
-            // Smooth transition from Processing
-            animationEnabled: true,
-
             // Disable back gesture (use buttons to navigate instead)
             gestureEnabled: false,
 
@@ -157,16 +178,13 @@ export const RootNavigator = () => {
         />
 
         {/* ============================================
-            Screen 5: Home (Dashboard)
+            Screen 7: Home (Dashboard)
             Shows reading history and stats
             ============================================ */}
         <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{
-            // Smooth animation from ReadingResult
-            animationEnabled: true,
-
             // Allow back gesture
             gestureEnabled: true,
           }}

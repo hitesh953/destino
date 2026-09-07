@@ -9,12 +9,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Pressable,
   Share,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   FadeIn,
   SlideInLeft,
@@ -90,7 +90,7 @@ export const ReadingResultScreen: React.FC<ReadingResultScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.headerBar}>
-        <Text style={styles.timeText}>9:41</Text>
+        {/* <Text style={styles.timeText}>9:41</Text> */}
         <Text style={styles.settingsIcon}>⚙️</Text>
       </View>
 
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#FF6B35", // Saffron
+    // backgroundColor: "#FF6B35", // Saffron
   },
   timeText: {
     fontSize: 16,
@@ -225,12 +225,14 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 18,
+    marginLeft: 'auto',
   },
 
   /* Scroll Content */
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 32,
+    // backgroundColor: '#FFF7EB'
   },
 
   /* Title Section */
