@@ -73,7 +73,8 @@
       {
         "androidMode": "default"
       }
-    ]
+    ],
+    "expo-audio"
   ],
   "experiments": {
     "tsconfigPaths": true

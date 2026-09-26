@@ -21,6 +21,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { db, getUserData, waitForAuthReady } from "@/services/firestore";
 import { useRashifalStore } from "@/stores/rashifalStore";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { fetchRashifalAudioUri } from "@/services/rashifalAudio";
 
 type NavigationType = NativeStackNavigationProp<RootStackParamList>;
 
@@ -65,9 +67,59 @@ export const TodaysRashifalScreen: React.FC = () => {
   // user's Firestore profile), avoiding a duplicate profile fetch.
   const cachedRashi = useRashifalStore((state) => state.rashi);
 
+  const player = useAudioPlayer(null);
+  const playerStatus = useAudioPlayerStatus(player);
+  const [isFetchingAudio, setIsFetchingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  // Tracks which (zodiac, language) the player's current source was fetched
+  // for, so switching the language re-fetches instead of replaying stale audio.
+  const [loadedAudioKey, setLoadedAudioKey] = useState<string | null>(null);
+
   useEffect(() => {
     loadRashifal();
   }, []);
+
+  // Stop playback if the user navigates away or switches language mid-listen.
+  useEffect(() => {
+    return () => {
+      // expo-audio releases the underlying native player as part of its own
+      // unmount teardown, which can happen before this cleanup runs — guard
+      // against calling pause() on an already-released shared object.
+      try {
+        player.pause();
+      } catch {
+        // Already released; nothing to pause.
+      }
+    };
+  }, [player]);
+
+  const handleToggleListen = async () => {
+    const audioKey = `${userZodiac}_${language}`;
+    setAudioError(null);
+
+    if (playerStatus.playing) {
+      player.pause();
+      return;
+    }
+
+    if (loadedAudioKey === audioKey && playerStatus.isLoaded) {
+      player.play();
+      return;
+    }
+
+    setIsFetchingAudio(true);
+    try {
+      const uri = await fetchRashifalAudioUri({ date, zodiacSign: userZodiac, language });
+      player.replace(uri);
+      setLoadedAudioKey(audioKey);
+      player.play();
+    } catch (error) {
+      console.error("Error fetching Rashifal audio:", error);
+      setAudioError("Couldn't load audio right now. Please try again.");
+    } finally {
+      setIsFetchingAudio(false);
+    }
+  };
 
   const loadRashifal = async () => {
     try {
@@ -190,6 +242,31 @@ export const TodaysRashifalScreen: React.FC = () => {
             <Text style={styles.zodiacDates}>{rashifal.dateRange}</Text>
             <Text style={styles.dateText}>{date}</Text>
           </View>
+
+          {/* Listen to Rashifal */}
+          <Pressable
+            style={({ pressed }) => [styles.listenButton, pressed && styles.listenButtonPressed]}
+            onPress={handleToggleListen}
+            disabled={isFetchingAudio}
+          >
+            {isFetchingAudio ? (
+              <ActivityIndicator size="small" color="#7B68EE" />
+            ) : (
+              <Ionicons
+                name={playerStatus.playing ? "pause-circle" : "volume-high"}
+                size={22}
+                color="#7B68EE"
+              />
+            )}
+            <Text style={styles.listenButtonText}>
+              {isFetchingAudio
+                ? "Preparing audio..."
+                : playerStatus.playing
+                  ? "Pause"
+                  : "Listen to your Rashifal"}
+            </Text>
+          </Pressable>
+          {audioError && <Text style={styles.audioErrorText}>{audioError}</Text>}
 
           {/* Cosmic Energy */}
           <View style={styles.section}>
@@ -371,6 +448,35 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 12,
     color: "#999",
+  },
+  listenButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "rgba(255, 253, 252, 0.94)",
+    borderRadius: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    shadowColor: "rgba(0, 0, 0, 0.12)",
+    shadowOpacity: 0.7,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  listenButtonPressed: {
+    opacity: 0.8,
+  },
+  listenButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#7B68EE",
+  },
+  audioErrorText: {
+    fontSize: 12,
+    color: "#E74C3C",
+    textAlign: "center",
+    marginBottom: 12,
   },
   section: {
     marginBottom: 16,

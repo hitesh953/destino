@@ -5,6 +5,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateRashifal = validateRashifal;
 exports.validateUserAstrologyProfile = validateUserAstrologyProfile;
+exports.validatePersonalityProfile = validatePersonalityProfile;
+exports.validatePalmAnalysisResult = validatePalmAnalysisResult;
 exports.logValidationErrors = logValidationErrors;
 const types_1 = require("./types");
 /**
@@ -221,6 +223,84 @@ function validateUserAstrologyProfile(data) {
             if (wordCount < 15 || wordCount > 150) {
                 errors.push({ field: `${field}.description`, message: 'description must be 15-150 words' });
             }
+        }
+    }
+    return errors;
+}
+/**
+ * Validate a bilingual personality profile (from generatePersonalityProfile)
+ */
+function validatePersonalityProfile(data) {
+    const errors = [];
+    if (!data || typeof data !== 'object') {
+        errors.push({ field: 'root', message: 'Personality data must be an object' });
+        return errors;
+    }
+    for (const lang of ['english', 'hindi']) {
+        const section = data[lang];
+        if (!section || typeof section !== 'object') {
+            errors.push({ field: lang, message: `${lang} section is required` });
+            continue;
+        }
+        if (!section.summary || typeof section.summary !== 'string') {
+            errors.push({ field: `${lang}.summary`, message: 'summary is required' });
+        }
+        const arrayFields = ['traits', 'strengths', 'improvementAreas'];
+        for (const field of arrayFields) {
+            if (!Array.isArray(section[field]) || section[field].length === 0) {
+                errors.push({ field: `${lang}.${field}`, message: `${field} must be a non-empty array` });
+            }
+        }
+        const stringFields = ['emotionalNature', 'socialNature', 'decisionMaking', 'careerPersonality'];
+        for (const field of stringFields) {
+            if (!section[field] || typeof section[field] !== 'string') {
+                errors.push({ field: `${lang}.${field}`, message: `${field} is required` });
+            }
+        }
+    }
+    return errors;
+}
+/**
+ * Validate a palm analysis result (from analyzePalmImage). Every text field
+ * must be present — a missing/malformed field means the AI response is
+ * rejected outright rather than silently filled in with placeholder text.
+ */
+function validatePalmAnalysisResult(data) {
+    const errors = [];
+    if (!data || typeof data !== 'object') {
+        errors.push({ field: 'root', message: 'Palm analysis data must be an object' });
+        return errors;
+    }
+    if (!data.summary || typeof data.summary !== 'string') {
+        errors.push({ field: 'summary', message: 'summary is required' });
+    }
+    if (!data.palmStructure || typeof data.palmStructure !== 'object') {
+        errors.push({ field: 'palmStructure', message: 'palmStructure is required' });
+    }
+    else {
+        const lineFields = ['lifeLine', 'headLine', 'heartLine', 'fateLine', 'sunLine'];
+        for (const field of lineFields) {
+            if (!data.palmStructure[field] || typeof data.palmStructure[field] !== 'string') {
+                errors.push({ field: `palmStructure.${field}`, message: `${field} is required` });
+            }
+        }
+    }
+    if (!data.personality || typeof data.personality !== 'object') {
+        errors.push({ field: 'personality', message: 'personality is required' });
+    }
+    else {
+        if (!data.personality.summary || typeof data.personality.summary !== 'string') {
+            errors.push({ field: 'personality.summary', message: 'personality.summary is required' });
+        }
+        for (const field of ['traits', 'strengths', 'challenges']) {
+            if (!Array.isArray(data.personality[field]) || data.personality[field].length === 0) {
+                errors.push({ field: `personality.${field}`, message: `personality.${field} must be a non-empty array` });
+            }
+        }
+    }
+    for (const field of ['career', 'love', 'wealth', 'generalGuidance']) {
+        if (!data[field] || typeof data[field] !== 'string') {
+            errors.push({ field, message: `${field} is required` });
         }
     }
     return errors;

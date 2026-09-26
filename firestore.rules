@@ -26,6 +26,13 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // User Personality Reading - Only user can access own
+    // ============================================================
+    match /user_personality/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // ============================================================
     // Readings - User can read/write own, public ones are readable
     // ============================================================
     match /readings/{readingId} {
@@ -79,6 +86,15 @@ service cloud.firestore {
     // AI Analysis Logs - Admin only (no client access)
     // ============================================================
     match /ai_analysis_logs/{logId} {
+      allow read, write, delete: if false;
+    }
+
+    // ============================================================
+    // Daily Rashifal Audio Cache - Admin only (no client access).
+    // Clients only ever get this via the getRashifalAudio callable,
+    // which uses the Admin SDK and bypasses these rules.
+    // ============================================================
+    match /daily_rashifal_audio/{cacheId} {
       allow read, write, delete: if false;
     }
   }

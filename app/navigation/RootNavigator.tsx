@@ -1,7 +1,7 @@
 /**
  * Root Navigation Setup
  * Defines all routes and screen navigation flow
- * Navigation Stack: Welcome → Dashboard → Camera → Scanning → ReadingForm → Processing → ReadingResult → Home
+ * Navigation Stack: Welcome → Dashboard → Camera → Scanning → Processing → ReadingResult → Home
  */
 
 import React, { useEffect, useState } from 'react';
@@ -18,9 +18,9 @@ import { WelcomeScreen } from '@/screens/WelcomeScreen';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { DashboardScreen } from '@/features/palmreader/screens/DashboardScreen';
 import { TodaysRashifalScreen } from '@/features/palmreader/screens/TodaysRashifalScreen';
+import { PersonalityScreen } from '@/features/palmreader/screens/PersonalityScreen';
 import { CameraScreen } from '@/features/palmreader/screens/CameraScreen';
 import { ScanningScreen } from '@/features/palmreader/screens/ScanningScreen';
-import { ReadingFormScreen } from '@/features/palmreader/screens/ReadingFormScreen';
 import { ProcessingScreen } from '@/features/palmreader/screens/ProcessingScreen';
 import { ReadingResultScreen } from '@/features/palmreader/screens/ReadingResultScreen';
 import { HomeScreen } from '@/features/palmreader/screens/HomeScreen';
@@ -28,20 +28,6 @@ import { HomeScreen } from '@/features/palmreader/screens/HomeScreen';
 // ============================================
 // Type Definitions for Navigation
 // ============================================
-
-/**
- * UserData
- * Collected user information from the camera screen flow
- */
-export interface UserData {
-  palmImage: string | null;
-  nickname: string | null;
-  ageType: "approximate" | "exact" | null;
-  age: number | null;
-  dateOfBirth: Date | null;
-  birthplace: string | null;
-  includeEnhancedReading: boolean;
-}
 
 /**
  * RootStackParamList
@@ -54,19 +40,15 @@ export type RootStackParamList = {
   Login: undefined;
   Dashboard: { justLoggedIn?: boolean } | undefined;
   TodaysRashifal: undefined;
+  Personality: undefined;
   Camera: undefined;
   Scanning: {
-    palmImageUri: string;
-    readingId: string;
-  };
-  ReadingForm: {
     palmImageUri: string;
     readingId: string;
   };
   Processing: {
     capturedImageUri: string;
     readingId?: string;
-    userData?: UserData;
   };
   ReadingResult: {
     readingId: string;
@@ -206,6 +188,18 @@ export const RootNavigator = () => {
         />
 
         {/* ============================================
+            Screen 3.6: My Personality
+            Displays the user's bilingual personality reading
+            ============================================ */}
+        <Stack.Screen
+          name="Personality"
+          component={PersonalityScreen}
+          options={{
+            gestureEnabled: true,
+          }}
+        />
+
+        {/* ============================================
             Screen 4: Camera (Photo Capture)
             User captures palm image
             ============================================ */}
@@ -231,19 +225,6 @@ export const RootNavigator = () => {
 
             // Prevent back button from appearing
             headerLeft: () => null,
-          }}
-        />
-
-        {/* ============================================
-            Screen 6: ReadingForm (User Details)
-            Collects user information for reading
-            ============================================ */}
-        <Stack.Screen
-          name="ReadingForm"
-          component={ReadingFormScreen}
-          options={{
-            // Allow back gesture
-            gestureEnabled: true,
           }}
         />
 

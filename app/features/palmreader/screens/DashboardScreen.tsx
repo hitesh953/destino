@@ -391,7 +391,7 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleMyPersonality = () => {
-    // Navigate to personality details
+    navigation.navigate("Personality" as never);
   };
 
   const handleExploreAstrology = () => {

@@ -51,6 +51,7 @@
     "apisauce": "3.1.1",
     "date-fns": "^4.1.0",
     "expo": "^55.0.31",
+    "expo-audio": "~55.0.18",
     "expo-build-properties": "~55.0.18",
     "expo-camera": "~55.0.23",
     "expo-dev-client": "~55.0.40",

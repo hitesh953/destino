@@ -37,13 +37,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendDailyHoroscopeNotification = exports.generateUserAstrologyProfile = exports.deleteRashifal = exports.generateRashifalManual = exports.generateDailyRashifal = void 0;
+exports.analyzePalmScan = exports.validatePalmScan = exports.getPersonalityAudio = exports.generatePersonalityProfile = exports.getRashifalAudio = exports.sendDailyHoroscopeNotification = exports.generateUserAstrologyProfile = exports.deleteRashifal = exports.generateRashifalManual = exports.generateDailyRashifal = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const gemini_service_1 = require("./gemini-service");
 const firestore_service_1 = require("./firestore-service");
 const validators_1 = require("./validators");
 const notification_service_1 = require("./notification-service");
+const rashifal_audio_service_1 = require("./rashifal-audio-service");
+const personality_service_1 = require("./personality-service");
+const personality_audio_service_1 = require("./personality-audio-service");
+const palm_analysis_service_1 = require("./palm-analysis-service");
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -280,10 +284,12 @@ exports.generateUserAstrologyProfile = functions
  * notification.
  *
  * Deliberately separate from `generateDailyRashifal` (which runs at
- * 5:00 AM IST): the Rashifal is generated ahead of time, but users should
- * be notified at 9:00 AM IST. Idempotent — safe to re-run or retry.
+ * 5:00 AM IST): the Rashifal is generated ahead of time, and users are
+ * notified at 6:30 AM IST — early enough to catch them before they start
+ * their day, with a comfortable buffer after generation. Idempotent — safe
+ * to re-run or retry.
  *
- * Limitation: all users are notified in a single 9:00 AM IST window today,
+ * Limitation: all users are notified in a single 6:30 AM IST window today,
  * since `users/{uid}` has no per-user timezone field yet. The device/token
  * schema (`users/{uid}/devices/{deviceId}`) is intentionally independent of
  * this scheduling logic so per-timezone send windows can be added later
@@ -291,7 +297,7 @@ exports.generateUserAstrologyProfile = functions
  */
 exports.sendDailyHoroscopeNotification = functions
     .region('us-central1')
-    .pubsub.schedule('30 3 * * *')
+    .pubsub.schedule('0 1 * * *') // 01:00 UTC = 6:30 AM IST
     .timeZone('UTC')
     .onRun(async () => {
     console.log('='.repeat(60));
@@ -311,6 +317,141 @@ exports.sendDailyHoroscopeNotification = functions
             success: false,
             message: error instanceof Error ? error.message : 'Unknown error occurred',
         };
+    }
+});
+/**
+ * Callable Cloud Function: Get (or lazily generate) a brief spoken summary
+ * of a user's daily Rashifal via Google Cloud Text-to-Speech.
+ *
+ * Requires the "Cloud Text-to-Speech API" to be enabled on the GCP project —
+ * no key/secret needed, it authenticates via this function's own runtime
+ * service account. Results are cached per date/sign/language in
+ * `daily_rashifal_audio`, so the same combination is only synthesized once.
+ */
+exports.getRashifalAudio = functions
+    .region('us-central1')
+    .runWith({ secrets: ['GEMINI_API_KEY'] })
+    .https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'You must be signed in to listen to your Rashifal.');
+    }
+    const { date, zodiacSign, language } = data || {};
+    if (typeof date !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+        typeof zodiacSign !== 'string' ||
+        !zodiacSign ||
+        (language !== 'en' && language !== 'hi')) {
+        throw new functions.https.HttpsError('invalid-argument', 'date ("YYYY-MM-DD"), zodiacSign, and language ("en"|"hi") are required.');
+    }
+    try {
+        return await (0, rashifal_audio_service_1.getOrCreateRashifalAudio)(date, zodiacSign.toLowerCase(), language);
+    }
+    catch (error) {
+        console.error('❌ Error getting Rashifal audio:', error);
+        throw new functions.https.HttpsError('internal', error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+});
+/**
+ * Callable Cloud Function: Get (or lazily generate) the signed-in user's
+ * bilingual personality reading. Generated once via Gemini and cached in
+ * `user_personality/{uid}`; subsequent calls just return the cached data
+ * without calling Gemini again.
+ */
+exports.generatePersonalityProfile = functions
+    .region('us-central1')
+    .runWith({ secrets: ['GEMINI_API_KEY'] })
+    .https.onCall(async (_data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'You must be signed in to generate a personality reading.');
+    }
+    try {
+        return await (0, personality_service_1.getOrCreatePersonalityProfile)(context.auth.uid);
+    }
+    catch (error) {
+        console.error('❌ Error getting personality profile:', error);
+        throw new functions.https.HttpsError('internal', error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+});
+/**
+ * Callable Cloud Function: Get (or lazily generate) spoken audio for the
+ * signed-in user's personality reading, in the requested language. Requires
+ * a personality reading to already exist (call generatePersonalityProfile
+ * first). Cached directly on the user's own `user_personality/{uid}` doc.
+ */
+exports.getPersonalityAudio = functions
+    .region('us-central1')
+    .runWith({ secrets: ['GEMINI_API_KEY'] })
+    .https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'You must be signed in to listen to your personality reading.');
+    }
+    const { language } = data || {};
+    if (language !== 'en' && language !== 'hi') {
+        throw new functions.https.HttpsError('invalid-argument', 'language ("en"|"hi") is required.');
+    }
+    try {
+        return await (0, personality_audio_service_1.getOrCreatePersonalityAudio)(context.auth.uid, language);
+    }
+    catch (error) {
+        console.error('❌ Error getting personality audio:', error);
+        throw new functions.https.HttpsError('internal', error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+});
+/**
+ * Callable Cloud Function: Validate a captured palm photo before running
+ * full analysis. Real "detection" grounded in the actual image via Gemini
+ * vision — there is no on-device hand-tracking model in this app.
+ */
+exports.validatePalmScan = functions
+    .region('us-central1')
+    .runWith({ secrets: ['GEMINI_API_KEY'] })
+    .https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'You must be signed in.');
+    }
+    const { imageBase64, mimeType } = data || {};
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'imageBase64 is required.');
+    }
+    try {
+        return await (0, palm_analysis_service_1.validatePalmScan)(imageBase64, mimeType || 'image/jpeg');
+    }
+    catch (error) {
+        console.error('❌ Error validating palm scan:', error);
+        throw new functions.https.HttpsError('internal', error instanceof Error ? error.message : 'Unknown error occurred', { errorCode: 'AI_REQUEST_FAILED' });
+    }
+});
+/**
+ * Callable Cloud Function: Analyze a captured palm photo (only call after
+ * validatePalmScan reports valid:true) and persist the result to
+ * `readings/{readingId}`. Name/age/birthplace context comes from the
+ * signed-in user's own `users/{uid}` profile (collected at onboarding) —
+ * never returns canned/fallback content, any failure surfaces as a typed
+ * error instead.
+ */
+exports.analyzePalmScan = functions
+    .region('us-central1')
+    .runWith({ secrets: ['GEMINI_API_KEY'] })
+    .https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'You must be signed in.');
+    }
+    const { imageBase64, mimeType } = data || {};
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'imageBase64 is required.');
+    }
+    try {
+        return await (0, palm_analysis_service_1.analyzePalmScan)(context.auth.uid, imageBase64, mimeType || 'image/jpeg');
+    }
+    catch (error) {
+        console.error('❌ Error analyzing palm scan:', error);
+        const message = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorCode = message.startsWith('AI_RESPONSE_INVALID')
+            ? 'AI_RESPONSE_INVALID'
+            : message === 'DATABASE_SAVE_FAILED'
+                ? 'DATABASE_SAVE_FAILED'
+                : 'AI_REQUEST_FAILED';
+        throw new functions.https.HttpsError('internal', message, { errorCode });
     }
 });
 //# sourceMappingURL=index.js.map
