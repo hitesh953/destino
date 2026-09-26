@@ -18,9 +18,6 @@ if (__DEV__) {
 }
 import "./utils/gestureHandler"
 
-// Initialize Firebase
-import "./config/firebase"
-
 import { useEffect, useState } from "react"
 import { useFonts } from "expo-font"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -32,6 +29,7 @@ import { RootNavigator } from "./navigation/RootNavigator"
 import { ThemeProvider } from "./theme/context"
 import { customFontsToLoad } from "./theme/typography"
 import { loadDateFnsLocale } from "./utils/formatDate"
+import { initializeNotifications } from "./services/notifications"
 
 /**
  * This is the root component of our app.
@@ -46,6 +44,10 @@ export function App() {
     initI18n()
       .then(() => setIsI18nInitialized(true))
       .then(() => loadDateFnsLocale())
+  }, [])
+
+  useEffect(() => {
+    initializeNotifications()
   }, [])
 
   // Before we show the app, we have to wait for our state to be ready.

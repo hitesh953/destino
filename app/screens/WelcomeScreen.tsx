@@ -1,7 +1,6 @@
 /**
- * WelcomeScreen - First Screen (Splash/Welcome)
- * App branding and entrance animation
- * Auto-navigates to Home after 2.5s
+ * WelcomeScreen - First Screen (Welcome)
+ * App branding and entry point
  */
 
 import React, { useEffect } from "react";
@@ -9,181 +8,177 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
-  Pressable,
+  ImageBackground,
+  Image,
+  ScrollView,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, {
-  FadeIn,
-  ZoomIn,
-  SlideInUp,
-  withTiming,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  Easing,
-} from "react-native-reanimated";
+import { useFonts, CormorantGaramond_700Bold, CormorantGaramond_400Regular, CormorantGaramond_500Medium } from "@expo-google-fonts/cormorant-garamond";
+import { Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold } from "@expo-google-fonts/poppins";
+import { Cinzel_400Regular, Cinzel_700Bold } from "@expo-google-fonts/cinzel";
+import * as SplashScreen from "expo-splash-screen";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { palmColors } from "@/theme/palmreader/colors";
-import { ANIMATION_TIMINGS } from "@/utils/animations/timings";
+import DestinoLogo from "@/features/palmreader/components/DestinoLogo";
+import ReadingButton from "@/features/palmreader/components/GradientButton";
 
-const { width, height } = Dimensions.get("window");
-const MANDALA_SIZE = Math.min(width * 0.5, 200);
+SplashScreen.preventAutoHideAsync();
 
 interface RootStackParamList {
   Home: undefined;
   Welcome: undefined;
-  Camera: undefined;
+  Dashboard: undefined;
 }
 
 type NavigationType = NavigationProp<RootStackParamList>;
 
 export const WelcomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationType>();
-  const mandalaRotation = useSharedValue(0);
+
+  // Load custom fonts
+  const [fontsLoaded] = useFonts({
+    CormorantGaramond_700Bold,
+    CormorantGaramond_400Regular,
+    CormorantGaramond_500Medium,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Cinzel_400Regular,
+    Cinzel_700Bold,
+  });
 
   useEffect(() => {
-    // Start mandala rotation (8s full rotation from timings)
-    mandalaRotation.value = withRepeat(
-      withTiming(360, {
-        duration: ANIMATION_TIMINGS.processing.mandalaRotation, // 8000ms
-        easing: Easing.linear,
-      }),
-      -1,
-      false
-    );
-  }, [mandalaRotation]);
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const handleBeginReading = () => {
-    // Navigate to camera screen to capture palm
-    navigation.navigate("Camera" as never);
+    navigation.navigate("Onboarding" as never);
   };
 
-  const mandalaStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${mandalaRotation.value}deg` }],
-  }));
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header Bar with Time */}
-      <View style={styles.headerBar}>
-        {/* <Text style={styles.timeText}>9:41</Text> */}
-        <Text style={styles.settingsIcon}>⚙️</Text>
-      </View>
-
-      {/* Main Content */}
-      <View style={styles.content}>
-        {/* App Branding - Fades in over 500ms */}
-        <Animated.View
-          entering={FadeIn.duration(500)}
+    <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <ImageBackground
+        source={require("@assets/images/welcome_bg.png")}
+        style={styles.fullScreenBackground}
+        imageStyle={styles.backgroundImageStyle}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.storyWrapper}>
+          <Text style={styles.storyText}>Your Story in Your Hands</Text>
+        </View>
+        {/* Main Content */}
+        <View style={styles.content}>
+        {/* App Branding - Fades in */}
+        <View
           style={styles.brandingSection}
         >
-          <Text style={styles.tagline}>WELCOME TO</Text>
-          <Text style={styles.appName}>✨ DESTINO ✨</Text>
+          <View style={styles.taglineWrapper}>
+            <View style={styles.taglineLine} />
+            <Text style={styles.tagline}>WELCOME TO</Text>
+            <View style={styles.taglineLine} />
+          </View>
+          <View>
+            <DestinoLogo />
+          </View>
           <Text style={styles.appSubtitle}>
             AI-Powered Palm Reading for Your Destiny
           </Text>
-        </Animated.View>
 
-        {/* Mandala Circle - Zoom in and rotate */}
-        <Animated.View
-          entering={ZoomIn.duration(
-            ANIMATION_TIMINGS.splash.mandalaGrow
-          ).delay(300)}
-          style={[styles.mandalaContainer, mandalaStyle]}
-        >
-          {/* Outer Glow Ring */}
-          <Animated.View
-            entering={FadeIn.duration(
-              ANIMATION_TIMINGS.splash.glowEffect
-            ).delay(800)}
-            style={styles.glowRing}
-          />
-
-          {/* Mandala Circle with Rotating Border */}
-          <View style={styles.mandalaCircle}>
-            {/* Rotating particles orbit */}
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Animated.View
-                key={index}
-                style={[
-                  styles.particle,
-                  {
-                    transform: [
-                      { rotate: `${(360 / 8) * index}deg` },
-                      { translateY: -(MANDALA_SIZE / 2 + 30) },
-                    ],
-                  },
-                  mandalaStyle,
-                ]}
-              >
-                <View style={styles.particleDot} />
-              </Animated.View>
-            ))}
-
-            {/* Hand Icon in Center */}
-            <Text style={styles.palmIcon}>🖐️</Text>
+          {/* Feature Cards */}
+          <View style={styles.cardsContainer}>
+            <View style={styles.card}>
+              <Image
+                source={require("@assets/images/gradient_icons/love.png")}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardLabel}>Love &{"\n"}Relationships</Text>
+            </View>
+            <View style={styles.card}>
+              <Image
+                source={require("@assets/images/gradient_icons/career.png")}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardLabel}>Career &{"\n"}Success</Text>
+            </View>
+            <View style={styles.card}>
+              <Image
+                source={require("@assets/images/gradient_icons/health.png")}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardLabel}>Health &{"\n"}Wellness</Text>
+            </View>
+            <View style={styles.card}>
+              <Image
+                source={require("@assets/images/gradient_icons/guidance.png")}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardLabel}>Life Guidance{"\n"}& More</Text>
+            </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Call-to-Action Button - Slides up */}
-        <Animated.View
-          entering={SlideInUp.duration(500).delay(1200)}
+        <View
           style={styles.ctaSection}
         >
-          <Pressable
-            onPress={handleBeginReading}
-            style={({ pressed }) => [
-              styles.ctaButton,
-              pressed && styles.ctaButtonPressed,
-            ]}
-          >
-            <Text style={styles.ctaText}>Tap to Begin Your Reading</Text>
-            <Text style={styles.ctaSubtext}>
-              Discover what your palms reveal
-            </Text>
-          </Pressable>
-        </Animated.View>
-
-        {/* Footer Tagline - Fades in last */}
-        <Animated.View
-          entering={FadeIn.duration(400).delay(1600)}
-          style={styles.footerSection}
-        >
-          <Text style={styles.footerText}>
-            Ancient wisdom meets modern AI
-          </Text>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+          <ReadingButton onPress={handleBeginReading} />
+        </View>
+        </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palmColors.background,
+    backgroundColor: 'transparent',
+  },
+  fullScreenBackground: {
+    flex: 1,
+  },
+  backgroundImage: {
+    flex: 1,
+  },
+  backgroundImageStyle: {
+    resizeMode: "cover",
   },
   headerBar: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    // backgroundColor: "#FF6B35", // Saffron/Orange from design
-  },
-  timeText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: palmColors.background,
   },
   settingsIcon: {
     fontSize: 18,
-    marginLeft: 'auto',
+  },
+  storyWrapper: {
+    width: 60,
+    position: 'absolute',
+    right: 5,
+    top: 100,
+  },
+  storyText:{
+    fontSize: 18,
+    fontFamily: "CormorantGaramond_500Medium",
+    color: '#f4f4f4',
+    lineHeight: 18,
+    letterSpacing: 0.8,
   },
   content: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 40,
@@ -192,112 +187,53 @@ const styles = StyleSheet.create({
   /* Branding Section */
   brandingSection: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 'auto',
+  },
+  taglineWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    gap: 12,
+  },
+  taglineLine: {
+    height: 1.5,
+    width: 60,
+    backgroundColor: palmColors.accent,
+    opacity: 0.7,
   },
   tagline: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
+    fontFamily: "Poppins_600SemiBold",
     color: palmColors.accent,
-    letterSpacing: 2,
-    marginBottom: 8,
+    letterSpacing: 2.5,
   },
   appName: {
-    fontSize: 48,
-    fontWeight: "800",
-    color: palmColors.accent,
-    letterSpacing: 1,
-    marginBottom: 12,
+    fontSize: 58,
+    fontWeight: "700",
+    fontFamily: "Cinzel_700Bold",
+    color: "#E8B83E",
+    letterSpacing: 2,
+    marginBottom: 14,
     textAlign: "center",
   },
   appSubtitle: {
-    fontSize: 16,
-    color: palmColors.text,
+    fontSize: 18,
+    fontFamily: "Poppins_400Regular",
+    color: "#F4F2FF",
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 24,
     opacity: 0.85,
-  },
-
-  /* Mandala Section */
-  mandalaContainer: {
-    width: MANDALA_SIZE,
-    height: MANDALA_SIZE,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 30,
-  },
-  glowRing: {
-    position: "absolute",
-    width: MANDALA_SIZE + 40,
-    height: MANDALA_SIZE + 40,
-    borderRadius: (MANDALA_SIZE + 40) / 2,
-    backgroundColor: palmColors.accent,
-    opacity: 0.2,
-  },
-  mandalaCircle: {
-    width: MANDALA_SIZE,
-    height: MANDALA_SIZE,
-    borderRadius: MANDALA_SIZE / 2,
-    backgroundColor: "rgba(107, 79, 160, 0.3)", // Mystique Purple with transparency
-    borderWidth: 2,
-    borderColor: palmColors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    shadowColor: palmColors.accent,
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  particle: {
-    position: "absolute",
-  },
-  particleDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: palmColors.accent,
-    opacity: 0.8,
-  },
-  palmIcon: {
-    fontSize: 80,
-    textAlign: "center",
+    paddingHorizontal: 50
   },
 
   /* CTA Section */
   ctaSection: {
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 40,
     width: "100%",
-  },
-  ctaButton: {
-    backgroundColor: palmColors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    shadowColor: palmColors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  ctaButtonPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.9,
-  },
-  ctaText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: palmColors.surface,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  ctaSubtext: {
-    fontSize: 13,
-    color: palmColors.surface,
-    opacity: 0.8,
-    textAlign: "center",
   },
 
   /* Footer Section */
@@ -306,10 +242,39 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: palmColors.text,
-    opacity: 0.6,
+    fontFamily: "Cinzel_400Regular",
+    color: "#fff",
+    opacity: 0.7,
     textAlign: "center",
     fontStyle: "italic",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+  },
+
+  /* Feature Cards */
+  cardsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    marginTop: 24,
+    marginBottom: 10,
+    gap: 12,
+    paddingHorizontal: 0,
+  },
+  card: {
+    alignItems: "center",
+    width: 70,
+  },
+  cardIcon: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
+    objectFit: 'contain'
+  },
+  cardLabel: {
+    fontSize: 10,
+    fontFamily: "Poppins_500Medium",
+    color: "#fff",
+    textAlign: "center",
+    lineHeight: 14,
   },
 });

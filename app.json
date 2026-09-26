@@ -21,7 +21,11 @@
       "foregroundImage": "./assets/images/app-icon-android-adaptive-foreground.png",
       "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
     },
-    "allowBackup": false
+    "allowBackup": false,
+    "googleServicesFile": "./android/app/google-services.json",
+    "permissions": [
+      "android.permission.POST_NOTIFICATIONS"
+    ]
   },
   "ios": {
     "icon": "./assets/images/app-icon-ios.png",
@@ -62,6 +66,12 @@
         "ios": {
           "deploymentTarget": "15.1"
         }
+      }
+    ],
+    [
+      "expo-notifications",
+      {
+        "androidMode": "default"
       }
     ]
   ],

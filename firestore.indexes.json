@@ -1,0 +1,43 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "daily_rashifal",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "readings",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "readings",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userRating",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

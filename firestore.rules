@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // Users Collection - Only user can access own document
+    // ============================================================
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+
+      // ============================================================
+      // Device Tokens - Only the owning user can read/write their own
+      // devices. Cloud Functions use the Admin SDK and bypass these
+      // rules entirely, so server-side sends/cleanup are unaffected.
+      // ============================================================
+      match /devices/{deviceId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+
+    // ============================================================
+    // User Astrology Data - Only user can access
+    // ============================================================
+    match /user_astrology_data/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // ============================================================
+    // Readings - User can read/write own, public ones are readable
+    // ============================================================
+    match /readings/{readingId} {
+      allow read: if request.auth.uid == resource.data.userId
+                  || resource.data.isPublic == true;
+      allow create: if request.auth.uid != null;
+      allow write: if request.auth.uid == resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================
+    // Readings History - Only user can access
+    // ============================================================
+    match /readings_history/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // ============================================================
+    // Daily Rashifal - ALL authenticated users can READ
+    // Only Cloud Functions (via service account) can WRITE
+    // ============================================================
+    match /daily_rashifal/{date} {
+      // Allow all authenticated users to read daily rashifal
+      allow read: if request.auth.uid != null;
+
+      // Prevent client-side writes
+      allow create, write, update: if false;
+
+      // Prevent client-side deletes
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // Readings Reviews - Authenticated users can read, write own
+    // ============================================================
+    match /readings_reviews/{reviewId} {
+      allow read: if request.auth.uid != null;
+      allow create: if request.auth.uid != null;
+      allow write, update: if request.auth.uid == resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================
+    // User Subscriptions - Only user can access own
+    // ============================================================
+    match /user_subscriptions/{subscriptionId} {
+      allow read, write: if request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================
+    // AI Analysis Logs - Admin only (no client access)
+    // ============================================================
+    match /ai_analysis_logs/{logId} {
+      allow read, write, delete: if false;
+    }
+  }
+}

@@ -36,6 +36,6 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
         ],
       },
     },
-    plugins: [...existingPlugins, "expo-image"],
+    plugins: [...existingPlugins, "expo-image","@react-native-vector-icons/ionicons"],
   }
 }
