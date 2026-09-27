@@ -19,6 +19,7 @@ import {
   saveDeviceToken,
   updateNotificationPreference as updateNotificationPreferenceInFirestore,
 } from '@/services/firestore';
+import { getLastNotificationResponse } from 'expo-notifications';
 
 export const NOTIFICATION_CHANNEL_ID = 'daily_insights';
 
@@ -90,8 +91,7 @@ export function initializeNotifications(): void {
   });
 
   // App launched by tapping a notification from a fully closed state.
-  Notifications.getLastNotificationResponseAsync()
-    .then((response) => {
+        getLastNotificationResponse.then((response: { notification: { request: { content: { data: NotificationData; }; }; }; }) => {
       if (response) {
         handleNotificationTap(response.notification.request.content.data as NotificationData);
       }

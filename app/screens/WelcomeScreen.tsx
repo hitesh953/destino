@@ -20,7 +20,7 @@ import { Cinzel_400Regular, Cinzel_700Bold } from "@expo-google-fonts/cinzel";
 import * as SplashScreen from "expo-splash-screen";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { palmColors } from "@/theme/palmreader/colors";
-import DestinoLogo from "@/features/palmreader/components/DestinoLogo";
+//import DestinoLogo from "@/features/palmreader/components/DestinoLogo";
 import ReadingButton from "@/features/palmreader/components/GradientButton";
 
 SplashScreen.preventAutoHideAsync();
@@ -87,7 +87,7 @@ export const WelcomeScreen: React.FC = () => {
             <View style={styles.taglineLine} />
           </View>
           <View>
-            <DestinoLogo />
+            {/* <DestinoLogo /> */}
           </View>
           <Text style={styles.appSubtitle}>
             AI-Powered Palm Reading for Your Destiny

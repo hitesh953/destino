@@ -23,6 +23,7 @@ import { db, getUserData, waitForAuthReady } from "@/services/firestore";
 import { useRashifalStore } from "@/stores/rashifalStore";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { fetchRashifalAudioUri } from "@/services/rashifalAudio";
+import { ZodiacWheelBanner } from "@/features/palmreader/components/ZodiacWheelBanner";
 
 type NavigationType = NativeStackNavigationProp<RootStackParamList>;
 
@@ -236,6 +237,12 @@ export const TodaysRashifalScreen: React.FC = () => {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+          {/* Decorative Zodiac Wheel Banner */}
+          <ZodiacWheelBanner
+            title={isEnglish ? "Today's Rashifal" : "आज का राशिफल"}
+            subtitle={rashifal.name}
+          />
+
           {/* Zodiac Card */}
           <View style={styles.zodiacCard}>
             <Text style={styles.zodiacName}>{rashifal.name}</Text>

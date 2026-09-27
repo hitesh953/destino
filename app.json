@@ -22,7 +22,7 @@
       "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
     },
     "allowBackup": false,
-    "googleServicesFile": "./android/app/google-services.json",
+    "googleServicesFile": "./google-services.json",
     "permissions": [
       "android.permission.POST_NOTIFICATIONS"
     ]
@@ -42,7 +42,9 @@
     [
       "expo-splash-screen",
       {
-        "backgroundColor": "#0F1B3D"
+        "backgroundColor": "#0F1B3D",
+        "image": "./assets/images/logo.png",
+        "imageWidth": 200
       }
     ],
     [

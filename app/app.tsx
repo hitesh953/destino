@@ -46,9 +46,9 @@ export function App() {
       .then(() => loadDateFnsLocale())
   }, [])
 
-  useEffect(() => {
-    initializeNotifications()
-  }, [])
+  // useEffect(() => {
+  //   initializeNotifications()
+  // }, [])
 
   // Before we show the app, we have to wait for our state to be ready.
   // In the meantime, don't render anything. This will be the background

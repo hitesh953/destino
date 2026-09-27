@@ -114,8 +114,12 @@ const ZODIAC_SIGNS = {
 
 type ZodiacSignKey = keyof typeof ZODIAC_SIGNS;
 
-// Cosmic hand illustration with zodiac wheel
-const CosmicHandIllustration = () => (
+// Cosmic hand illustration with zodiac wheel.
+// Memoized: it takes no props, so this renders exactly once instead of
+// recomputing ~15 SVG nodes on every Dashboard re-render (language toggle,
+// store updates, the notification-prompt timer, etc.) — that repeated
+// recompute was what made scrolling feel janky.
+const CosmicHandIllustration = React.memo(() => (
   <Svg width={180} height={180} viewBox="0 0 200 240">
     <Defs>
       <LinearGradient id="cosmicGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -165,11 +169,15 @@ const CosmicHandIllustration = () => (
     <Circle cx="140" cy="180" r="1.5" fill="#D4AF37" opacity="0.6" />
     <Circle cx="60" cy="190" r="1.5" fill="#D4AF37" opacity="0.6" />
   </Svg>
-);
+));
+CosmicHandIllustration.displayName = "CosmicHandIllustration";
 
 
-// Circular progress indicator with Ionicons
-const CircularProgress = ({
+// Circular progress indicator with Ionicons.
+// Memoized so each of the 5 instances only recomputes when its own
+// percentage/label/icon/color actually change, not on every unrelated
+// Dashboard re-render.
+const CircularProgress = React.memo(function CircularProgress({
   percentage,
   label,
   iconName,
@@ -179,7 +187,7 @@ const CircularProgress = ({
   label: string;
   iconName: string;
   color: string;
-}) => {
+}) {
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -224,16 +232,17 @@ const CircularProgress = ({
       <Text style={styles.circleLabel}>{label}</Text>
     </View>
   );
-};
+});
 
 // Language selector
-const LanguageSelector = ({
+const LanguageSelector = React.memo(function LanguageSelector({
   selectedLanguage,
   onLanguageChange,
 }: {
   selectedLanguage: "en" | "hi";
   onLanguageChange: (lang: "en" | "hi") => void;
-}) => (
+}) {
+  return (
   <View style={styles.languageContainer}>
     <Pressable
       style={[
@@ -268,7 +277,8 @@ const LanguageSelector = ({
       </Text>
     </Pressable>
   </View>
-);
+  );
+});
 
 const truncateName = (name: string, maxLength: number = 8): string => {
   return name.length > maxLength ? name.substring(0, maxLength) + "..." : name;
