@@ -28,4 +28,24 @@ config.resolver.unstable_conditionNames = ["require", "default", "browser"]
 // such as Firebase that use the extension cjs.
 config.resolver.sourceExts.push("cjs")
 
+// @firebase/auth needs the "react-native" export condition to resolve its
+// AsyncStorage-backed persistence layer (getReactNativePersistence). Without
+// it, auth state doesn't survive app restarts even though sign-in succeeds.
+// We can't add "react-native" to unstable_conditionNames globally (that's
+// exactly what the axios/apisauce fix above disables), so this only widens
+// the condition list for firebase/auth's own resolution.
+const { resolveRequest: defaultResolveRequest } = config.resolver
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === "firebase/auth" || moduleName.startsWith("@firebase/auth")) {
+    return context.resolveRequest(
+      { ...context, unstable_conditionNames: ["react-native", "require", "default"] },
+      moduleName,
+      platform,
+    )
+  }
+  return defaultResolveRequest
+    ? defaultResolveRequest(context, moduleName, platform)
+    : context.resolveRequest(context, moduleName, platform)
+}
+
 module.exports = config

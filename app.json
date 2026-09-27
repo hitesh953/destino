@@ -21,7 +21,11 @@
       "foregroundImage": "./assets/images/app-icon-android-adaptive-foreground.png",
       "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
     },
-    "allowBackup": false
+    "allowBackup": false,
+    "googleServicesFile": "./google-services.json",
+    "permissions": [
+      "android.permission.POST_NOTIFICATIONS"
+    ]
   },
   "ios": {
     "icon": "./assets/images/app-icon-ios.png",
@@ -38,7 +42,9 @@
     [
       "expo-splash-screen",
       {
-        "backgroundColor": "#0F1B3D"
+        "backgroundColor": "#0F1B3D",
+        "image": "./assets/images/logo.png",
+        "imageWidth": 200
       }
     ],
     [
@@ -63,7 +69,14 @@
           "deploymentTarget": "15.1"
         }
       }
-    ]
+    ],
+    [
+      "expo-notifications",
+      {
+        "androidMode": "default"
+      }
+    ],
+    "expo-audio"
   ],
   "experiments": {
     "tsconfigPaths": true
