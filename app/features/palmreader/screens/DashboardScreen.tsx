@@ -478,6 +478,17 @@ export const DashboardScreen: React.FC = () => {
             imageStyle={styles.zodiacBackgroundImage}
             resizeMode="cover"
           >
+            {/* Readability scrim — dark cosmic tones matching the app's
+                existing purple/navy palette (same as the Rashifal button
+                gradient below), not a generic black overlay, so text stays
+                legible over any zodiac sign's busy illustration. */}
+            <ExpoLinearGradient
+              colors={["rgba(20,19,51,0.55)", "rgba(41,22,90,0.4)", "rgba(20,19,51,0.3)"]}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.zodiacCardScrim}
+            />
             <View style={styles.zodiacCardContent}>
               {/* Left side - Info */}
               <View style={styles.zodiacInfo}>
@@ -501,20 +512,22 @@ export const DashboardScreen: React.FC = () => {
                   </View>
                 </View>
 
-                <Text style={styles.cosmicEnergyTitle}>
-                  {isEnglish ? "Today's Rashifal" : "आज की राशिफल"}
-                </Text>
-                {isLoadingRashifal ? (
-                  <ActivityIndicator size="small" color="#7B68EE" style={styles.energyLoader} />
-                ) : (
-                  <Text style={styles.energyDescription}>
-                    {(isEnglish ? rashifal?.shortDescription?.en : rashifal?.shortDescription?.hi) ||
-                      rashifalError ||
-                      (isEnglish
-                        ? "Your daily Rashifal is on its way."
-                        : "आपकी दैनिक राशिफल जल्द ही आएगी।")}
+                {/* <View style={styles.astroContent}> */}
+                  <Text style={styles.cosmicEnergyTitle}>
+                    {isEnglish ? "Today's Rashifal" : "आज की राशिफल"}
                   </Text>
-                )}
+                  {isLoadingRashifal ? (
+                    <ActivityIndicator size="small" color="#7B68EE" style={styles.energyLoader} />
+                  ) : (
+                    <Text style={styles.energyDescription}>
+                      {(isEnglish ? rashifal?.shortDescription?.en : rashifal?.shortDescription?.hi) ||
+                        rashifalError ||
+                        (isEnglish
+                          ? "Your daily Rashifal is on its way."
+                          : "आपकी दैनिक राशिफल जल्द ही आएगी।")}
+                    </Text>
+                  )}
+                {/* </View> */}
 
                 {/* Circular Progress Indicators */}
                 <View style={styles.statsBackdrop}>
@@ -548,18 +561,25 @@ export const DashboardScreen: React.FC = () => {
                       </Pressable>
                     </ExpoLinearGradient>
 
-                    <Pressable
-                      style={({ pressed }) => [styles.personalityButton, pressed && styles.personalityButtonPressed]}
-                      onPress={handleMyPersonality}
+                    <ExpoLinearGradient
+                      colors={["#F0C05A", "#D4AF37", "#9C7A1E"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0.3 }}
+                      style={styles.personalityGradient}
                     >
-                      <Text style={styles.personalityButtonIcon}>👤</Text>
-                      <View style={styles.personalityTextContainer}>
-                        <Text style={styles.personalityButtonText}>
-                          {isEnglish ? "My Personality" : "मेरा व्यक्तित्व"}
-                        </Text>
-                        <Ionicons name="arrow-forward" size={18} color="#1A1F3A" />
-                      </View>
-                    </Pressable>
+                      <Pressable
+                        style={({ pressed }) => [styles.personalityButton, pressed && styles.personalityButtonPressed]}
+                        onPress={handleMyPersonality}
+                      >
+                        <Ionicons name="person" size={15} color="#2A1F00" style={styles.personalityButtonIcon} />
+                        <View style={styles.personalityTextContainer}>
+                          <Text style={styles.personalityButtonText}>
+                            {isEnglish ? "My Personality" : "मेरा व्यक्तित्व"}
+                          </Text>
+                          <Ionicons name="arrow-forward" size={16} color="#2A1F00" />
+                        </View>
+                      </Pressable>
+                    </ExpoLinearGradient>
                   </View>
                 </View>
               </View>
@@ -880,6 +900,10 @@ const styles = StyleSheet.create({
   zodiacBackgroundImage: {
     borderRadius: 24,
   },
+  zodiacCardScrim: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 24,
+  },
   zodiacCardContent: {
     flexDirection: "row",
     gap: 14,
@@ -932,20 +956,28 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700"
   },
+  // astroContent:{
+  //   backgroundColor: "rgba(20, 27, 65, 0.82)",
+  //   color: "#fff",
+  //   padding: 10,
+  //   borderRadius: 20,
+  //       width: "60%",
+  // },
   cosmicEnergyTitle: {
     fontSize: 18,
     // fontWeight: "700",
-    color: "#1A1F3A",
+    color: "#fff",
     marginBottom: 6,
     fontFamily: "Poppins_700Bold"
   },
+  
   energyDescription: {
     fontSize: 13,
-    color: "#2C2C2C",
+    color: "#fff",
     lineHeight: 18,
     marginBottom: 14,
+    fontFamily: "Poppins_500Medium",
     width: "60%",
-    fontFamily: "Poppins_500Medium"
   },
   energyLoader: {
     marginBottom: 14,
@@ -954,12 +986,12 @@ const styles = StyleSheet.create({
 
   /* Backdrop behind progress circles + CTA buttons for readability
      over the busy zodiac photo background */
-  statsBackdrop: {
-    backgroundColor: "rgba(15, 12, 35, 0.55)",
-    borderRadius: 20,
-    padding: 14,
-    marginTop: 6,
-  },
+  // statsBackdrop: {
+  //   backgroundColor: "rgba(15, 12, 35, 0.55)",
+  //   borderRadius: 20,
+  //   padding: 14,
+  //   marginTop: 6,
+  // },
 
   /* Progress Circles */
   progressCirclesRow: {
@@ -1013,10 +1045,11 @@ const styles = StyleSheet.create({
   /* Dual Buttons */
   dualButtonsContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     gap: 10,
   },
   rashifalGradient: {
-    flex: 1,
+    width: "48%",
     borderRadius: 30,
     overflow: "hidden",
     shadowColor: "#6B4FA0",
@@ -1054,41 +1087,42 @@ const styles = StyleSheet.create({
     color: "white",
     letterSpacing: 0.3,
   },
-  personalityButton: {
-    // flex: 1,
-    backgroundColor: "rgba(212, 175, 55, 0.15)",
+  personalityGradient: {
+    width: "48%",
     borderRadius: 30,
+    overflow: "hidden",
+    shadowColor: "#D4AF37",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  personalityButton: {
+    flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: "rgba(212, 175, 55, 0.4)",
-    shadowColor: "rgba(212, 175, 55, 0.2)",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4
+    gap: 4,
   },
   personalityButtonPressed: {
-    opacity: 0.85,
+    opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
   personalityButtonIcon: {
-    fontSize: 18,
+    marginRight: 2,
   },
   personalityButtonText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#1A1F3A",
+    color: "#2A1F00",
     letterSpacing: 0.3,
   },
   personalityTextContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 5,
   },
 
   /* Palm Card */

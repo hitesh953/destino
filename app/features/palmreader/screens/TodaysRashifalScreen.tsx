@@ -13,7 +13,7 @@ import {
   ImageBackground,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "@/navigation/RootNavigator";
@@ -56,6 +56,7 @@ interface RashifalData {
 
 export const TodaysRashifalScreen: React.FC = () => {
   const navigation = useNavigation<NavigationType>();
+  const insets = useSafeAreaInsets();
   const [rashifal, setRashifal] = useState<RashifalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -209,33 +210,36 @@ export const TodaysRashifalScreen: React.FC = () => {
       style={styles.backgroundImage}
       imageStyle={styles.backgroundImageStyle}
     >
-      <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#7B68EE" />
+      {/* Header — backdrop extends up through the status bar area (via
+          insets.top) instead of stopping at the safe-area boundary, so the
+          status bar also sits over the same tinted backdrop, not the raw
+          background image. */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Today's Rashifal</Text>
+        <View style={styles.languageToggle}>
+          <Pressable
+            style={[styles.langButton, isEnglish && styles.langButtonActive]}
+            onPress={() => setLanguage("en")}
+          >
+            <Text style={[styles.langButtonText, isEnglish && styles.langButtonTextActive]}>
+              English
+            </Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Today's Rashifal</Text>
-          <View style={styles.languageToggle}>
-            <Pressable
-              style={[styles.langButton, isEnglish && styles.langButtonActive]}
-              onPress={() => setLanguage("en")}
-            >
-              <Text style={[styles.langButtonText, isEnglish && styles.langButtonTextActive]}>
-                English
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[styles.langButton, !isEnglish && styles.langButtonActive]}
-              onPress={() => setLanguage("hi")}
-            >
-              <Text style={[styles.langButtonText, !isEnglish && styles.langButtonTextActive]}>
-                हिंदी
-              </Text>
-            </Pressable>
-          </View>
+          <Pressable
+            style={[styles.langButton, !isEnglish && styles.langButtonActive]}
+            onPress={() => setLanguage("hi")}
+          >
+            <Text style={[styles.langButtonText, !isEnglish && styles.langButtonTextActive]}>
+              हिंदी
+            </Text>
+          </Pressable>
         </View>
+      </View>
 
+      <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
         <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
           {/* Decorative Zodiac Wheel Banner */}
           <ZodiacWheelBanner
@@ -371,6 +375,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     gap: 8,
+    backgroundColor: "rgba(20, 19, 51, 0.55)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(212, 175, 55, 0.15)",
   },
   languageToggle: {
     flexDirection: "row",
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
   langButtonText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#8B7B9E",
+    color: "#fff",
   },
   langButtonTextActive: {
     color: "white",
@@ -398,7 +405,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1A237E",
+    color: "#fff",
     flexShrink: 1,
   },
   loaderContainer: {

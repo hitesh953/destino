@@ -17,7 +17,7 @@ import { View, Text, StyleSheet, Dimensions } from "react-native";
 import Svg, { Circle, Path, Text as SvgText, Defs, LinearGradient, Stop, Polygon } from "react-native-svg";
 
 const { width: screenWidth } = Dimensions.get("window");
-const SIZE = Math.min(screenWidth - 40, 340);
+const SIZE = Math.min(screenWidth - 100, 340);
 const RADIUS = SIZE / 2;
 const CENTER = SIZE / 2;
 const OUTER_R = RADIUS - 4;

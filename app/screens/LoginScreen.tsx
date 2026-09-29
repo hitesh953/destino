@@ -376,17 +376,19 @@ const styles = StyleSheet.create({
 
   /* Header Section */
   headerSection: {
-    paddingTop: 80,
+    paddingTop: 10,
     paddingBottom: 10,
     paddingHorizontal: 20,
-    alignItems: "center",
+    width: '50%'
   },
   headerLabel: {
     fontSize: 11,
     fontWeight: "600",
+    fontFamily: "Poppins_600SemiBold",
     color: "#E9D5FF",
     letterSpacing: 1.5,
     marginBottom: 2,
+    marginTop: 50
   },
   titleContainer: {
     flexDirection: "row",
@@ -397,21 +399,22 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 50,
     color: "#F5C86A",
+    marginBottom: 0,
     textShadowColor: "rgba(0, 0, 0, 0.2)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    fontFamily: "CormorantGaramond_700Bold",
+    marginTop: 0,
   },
   sparkle: {
     fontSize: 28,
     marginLeft: 6,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 11,
     color: "#E9D5FF",
-    lineHeight: 18,
-    textAlign: "center",
+    lineHeight: 16,
     marginBottom: 12,
-    paddingHorizontal: 20,
   },
 
   /* Form Container */
